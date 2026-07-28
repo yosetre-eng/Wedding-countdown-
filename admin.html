@@ -154,9 +154,11 @@
   document.getElementById('loginBtn').addEventListener('click', () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    document.getElementById('loginError').style.display = 'none';
-    auth.signInWithEmailAndPassword(email, password).catch(() => {
-      document.getElementById('loginError').style.display = 'block';
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    auth.signInWithEmailAndPassword(email, password).catch((err) => {
+      errEl.textContent = 'שגיאה: ' + err.message + ' (' + err.code + ')';
+      errEl.style.display = 'block';
     });
   });
 
