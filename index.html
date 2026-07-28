@@ -470,6 +470,223 @@
   .daily-quote::before{ content:"“"; }
   .daily-quote::after{ content:"”"; }
 
+  /* ---------- INSTALL GUIDE BUTTON + MODAL ---------- */
+  .install-guide-btn{
+    position:relative; z-index:2;
+    margin-top:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background: rgba(255,255,255,0.14);
+    border:1px solid rgba(228,200,137,0.55);
+    color: var(--gold-light);
+    font-family:'Assistant', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    padding:8px 16px;
+    border-radius:999px;
+    backdrop-filter: blur(6px);
+    cursor:pointer;
+  }
+  .install-guide-btn:active{ transform: scale(0.96); }
+
+  .modal-overlay{
+    position:fixed; inset:0;
+    background: rgba(30,20,12,0.55);
+    backdrop-filter: blur(3px);
+    z-index:10000;
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-sheet{
+    width:100%;
+    max-width:520px;
+    max-height:85vh;
+    overflow-y:auto;
+    background: var(--cream);
+    border-radius:24px 24px 0 0;
+    padding: 20px 22px 34px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+    animation: sheetUp 0.35s ease;
+  }
+  @keyframes sheetUp{
+    from{ transform: translateY(30px); opacity:0; }
+    to{ transform: translateY(0); opacity:1; }
+  }
+  .modal-handle{
+    width:40px; height:4px;
+    background: rgba(198,153,79,0.4);
+    border-radius:999px;
+    margin: 0 auto 16px;
+  }
+  .modal-title{
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:700;
+    font-size:20px;
+    color: var(--mocha);
+    text-align:center;
+    margin-bottom:4px;
+  }
+  .modal-sub{
+    text-align:center;
+    font-size:12.5px;
+    color: var(--mocha-soft);
+    margin-bottom:18px;
+  }
+  .platform-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+    background: var(--cream-deep);
+    border-radius:12px;
+    padding:4px;
+  }
+  .platform-tab{
+    flex:1;
+    text-align:center;
+    padding:9px 4px;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:700;
+    color: var(--mocha-soft);
+    cursor:pointer;
+  }
+  .platform-tab.active{
+    background:#fff;
+    color: var(--mocha);
+    box-shadow: 0 3px 10px rgba(74,53,39,0.12);
+  }
+  .platform-steps{ display:none; }
+  .platform-steps.active{ display:flex; flex-direction:column; gap:12px; }
+  .guide-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .guide-step-num{
+    flex-shrink:0;
+    width:26px; height:26px;
+    border-radius:50%;
+    background: var(--gold);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .guide-step-text{
+    font-size:14.5px;
+    color: var(--mocha);
+    line-height:1.55;
+    padding-top:2px;
+  }
+  .guide-step-text b{ color: var(--gold); }
+  .modal-close{
+    display:block;
+    margin: 20px auto 0;
+    background: var(--mocha);
+    color:#fff;
+    border:none;
+    padding:12px 30px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    font-family:'Assistant', sans-serif;
+  }
+
+  /* ---------- CAROUSEL TOUCH FEEDBACK ---------- */
+  .carousel.pressed{ transform: scale(0.98); }
+  .carousel{ transition: transform 0.25s ease; }
+
+  /* ---------- WISHES / GUESTBOOK ---------- */
+  .wishes-section{
+    padding: 6px 20px 50px;
+  }
+  .wishes-card{
+    max-width:520px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:18px;
+    padding:22px 18px;
+    box-shadow: 0 12px 30px -16px rgba(74,53,39,0.28);
+    border: 1px solid rgba(198,153,79,0.18);
+  }
+  .wishes-head{
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .wishes-head .eyebrow2{
+    color: var(--rose-deep);
+    font-size:11px;
+    letter-spacing:0.3em;
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .wishes-head h3{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size: clamp(22px, 5.5vw, 27px);
+    font-weight:700;
+    margin-top:6px;
+    color: var(--mocha);
+  }
+  .wish-input, .wish-textarea{
+    width:100%;
+    border: 1.5px solid rgba(198,153,79,0.3);
+    border-radius:12px;
+    padding:11px 14px;
+    font-family:'Assistant', sans-serif;
+    font-size:14.5px;
+    color: var(--mocha);
+    background: var(--cream);
+    margin-bottom:10px;
+    resize:none;
+  }
+  .wish-textarea{ min-height:80px; }
+  .wish-submit{
+    width:100%;
+    background: var(--gold);
+    color:#fff;
+    border:none;
+    padding:12px;
+    border-radius:12px;
+    font-family:'Assistant', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+  .wish-submit:active{ opacity:0.85; }
+  .wishes-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:18px;
+  }
+  .wish-item{
+    background: var(--cream-deep);
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .wish-item-name{
+    font-weight:700;
+    font-size:13.5px;
+    color: var(--gold);
+    margin-bottom:3px;
+  }
+  .wish-item-text{
+    font-size:13.5px;
+    color: var(--mocha);
+    line-height:1.5;
+  }
+  .wishes-empty{
+    text-align:center;
+    font-size:12.5px;
+    color: var(--mocha-soft);
+    margin-top:14px;
+    opacity:0.75;
+  }
+
   /* ---------- FOOTER ---------- */
   footer{
     text-align:center;
@@ -512,8 +729,44 @@
     שיתוף הספירה
   </button>
 
+  <button class="install-guide-btn" id="installGuideBtn" type="button">
+    📲 איך שומרים את זה במסך הבית
+  </button>
+
   <div class="scroll-cue">↓ עוד קצת סבלנות ↓</div>
 </section>
+
+<!-- INSTALL GUIDE MODAL -->
+<div class="modal-overlay" id="installModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📲 הוספה למסך הבית</div>
+    <div class="modal-sub">כדי שהאפליקציה תיפתח כמו אפליקציה אמיתית</div>
+
+    <div class="platform-tabs">
+      <div class="platform-tab active" data-platform="ios">iPhone</div>
+      <div class="platform-tab" data-platform="android">אנדרואיד</div>
+    </div>
+
+    <div class="platform-steps active" id="steps-ios">
+      <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text">פותחים את הקישור ב<b>ספארי</b> (חובה ספארי, לא כרום)</div></div>
+      <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text">לוחצים על כפתור <b>השיתוף</b> (הריבוע עם החץ למעלה) בתחתית המסך</div></div>
+      <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text">גוללים למטה ובוחרים <b>הוסף למסך הבית</b></div></div>
+      <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-text">לוחצים <b>הוסף</b> למעלה מימין</div></div>
+      <div class="guide-step"><div class="guide-step-num">5</div><div class="guide-step-text">האייקון יופיע במסך הבית - לחיצה עליו פותחת את זה במסך מלא, כמו אפליקציה אמיתית ✨</div></div>
+    </div>
+
+    <div class="platform-steps" id="steps-android">
+      <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-text">פותחים את הקישור ב<b>כרום</b></div></div>
+      <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-text">לוחצים על <b>שלוש הנקודות</b> בפינה הימנית העליונה</div></div>
+      <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-text">בוחרים <b>התקן אפליקציה</b> או <b>הוסף למסך הבית</b> (Add to Home screen / Install app)</div></div>
+      <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-text">מאשרים בלחיצה על <b>התקן</b></div></div>
+      <div class="guide-step"><div class="guide-step-num">5</div><div class="guide-step-text">האייקון יופיע במסך הבית - לחיצה עליו פותחת את זה במסך מלא, כמו אפליקציה אמיתית ✨</div></div>
+    </div>
+
+    <button class="modal-close" id="installModalClose">הבנתי, תודה</button>
+  </div>
+</div>
 
 <!-- ORNAMENT -->
 <div class="ornament">
@@ -557,6 +810,21 @@
   </div>
 
   <div class="events-list" id="eventsList"></div>
+</section>
+
+<!-- WISHES / GUESTBOOK -->
+<section class="wishes-section">
+  <div class="wishes-card">
+    <div class="wishes-head">
+      <div class="eyebrow2">בואו לאחל</div>
+      <h3>השאירו לנו איחול 💌</h3>
+    </div>
+    <input class="wish-input" id="wishName" type="text" placeholder="השם שלך">
+    <textarea class="wish-textarea" id="wishText" placeholder="כתבו לנו כמה מילים..."></textarea>
+    <button class="wish-submit" id="wishSubmit" type="button">שליחת איחול 🤍</button>
+    <div class="wishes-list" id="wishesList"></div>
+    <div class="wishes-empty" id="wishesEmpty">היו הראשונים לאחל לזוג!</div>
+  </div>
 </section>
 
 <footer>
@@ -738,13 +1006,61 @@
     });
     const dots = Array.from(dotsWrap.children);
     let current = 0;
-    setInterval(() => {
+    let timer = null;
+
+    function advance(){
       imgs[current].classList.remove('active');
       dots[current].classList.remove('active');
       current = (current + 1) % imgs.length;
       imgs[current].classList.add('active');
       dots[current].classList.add('active');
-    }, 4000);
+    }
+    function startTimer(){
+      stopTimer();
+      timer = setInterval(advance, 4000);
+    }
+    function stopTimer(){
+      if(timer){ clearInterval(timer); timer = null; }
+    }
+    startTimer();
+
+    // touch feedback: pause + gentle press effect while holding the photo,
+    // resume auto-rotation a moment after release
+    let resumeTimeout = null;
+    function onPressStart(){
+      carousel.classList.add('pressed');
+      stopTimer();
+      if(resumeTimeout) clearTimeout(resumeTimeout);
+    }
+    function onPressEnd(){
+      carousel.classList.remove('pressed');
+      if(resumeTimeout) clearTimeout(resumeTimeout);
+      resumeTimeout = setTimeout(startTimer, 1500);
+    }
+    carousel.addEventListener('touchstart', onPressStart, { passive:true });
+    carousel.addEventListener('touchend', onPressEnd, { passive:true });
+    carousel.addEventListener('touchcancel', onPressEnd, { passive:true });
+    carousel.addEventListener('mousedown', onPressStart);
+    carousel.addEventListener('mouseup', onPressEnd);
+    carousel.addEventListener('mouseleave', () => { if(carousel.classList.contains('pressed')) onPressEnd(); });
+
+    // tap on the right/left half to manually go forward/back
+    carousel.addEventListener('click', (e) => {
+      const rect = carousel.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      stopTimer();
+      imgs[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      if(x > rect.width / 2){
+        current = (current + 1) % imgs.length; // right side = next (RTL forward)
+      } else {
+        current = (current - 1 + imgs.length) % imgs.length;
+      }
+      imgs[current].classList.add('active');
+      dots[current].classList.add('active');
+      if(resumeTimeout) clearTimeout(resumeTimeout);
+      resumeTimeout = setTimeout(startTimer, 1500);
+    });
   })();
 
   // ---- Confetti ----
@@ -946,6 +1262,72 @@
       }
       btn.innerHTML = originalLabel;
     }, 'image/png');
+  });
+
+  // ---- Install guide modal ----
+  const installModal = document.getElementById('installModal');
+  document.getElementById('installGuideBtn').addEventListener('click', () => {
+    installModal.classList.add('open');
+  });
+  document.getElementById('installModalClose').addEventListener('click', () => {
+    installModal.classList.remove('open');
+  });
+  installModal.addEventListener('click', (e) => {
+    if(e.target === installModal) installModal.classList.remove('open');
+  });
+  document.querySelectorAll('.platform-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.platform-steps').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('steps-' + tab.dataset.platform).classList.add('active');
+    });
+  });
+
+  // ---- Guest wishes (guestbook) ----
+  const WISHES_KEY = 'agamYosefWishes';
+  function loadWishes(){
+    try{
+      const raw = localStorage.getItem(WISHES_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return [];
+  }
+  function saveWishes(list){
+    try{ localStorage.setItem(WISHES_KEY, JSON.stringify(list)); }catch(e){}
+  }
+  function renderWishes(){
+    const list = loadWishes();
+    const wrap = document.getElementById('wishesList');
+    const empty = document.getElementById('wishesEmpty');
+    wrap.innerHTML = '';
+    if(list.length === 0){
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    list.slice().reverse().forEach(w => {
+      const item = document.createElement('div');
+      item.className = 'wish-item';
+      item.innerHTML = `<div class="wish-item-name">${w.name}</div><div class="wish-item-text">${w.text}</div>`;
+      wrap.appendChild(item);
+    });
+  }
+  renderWishes();
+
+  document.getElementById('wishSubmit').addEventListener('click', () => {
+    const nameEl = document.getElementById('wishName');
+    const textEl = document.getElementById('wishText');
+    const name = nameEl.value.trim();
+    const text = textEl.value.trim();
+    if(!name || !text) return;
+    const list = loadWishes();
+    list.push({ name, text, date: Date.now() });
+    saveWishes(list);
+    nameEl.value = '';
+    textEl.value = '';
+    renderWishes();
+    fireConfetti(50);
   });
 
   // ---- Register service worker (offline support once added to home screen) ----
