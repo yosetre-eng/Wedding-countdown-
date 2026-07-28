@@ -687,6 +687,150 @@
     opacity:0.75;
   }
 
+  /* ---------- RSVP ---------- */
+  .rsvp-section{
+    padding: 6px 20px 46px;
+  }
+  .rsvp-card{
+    max-width:520px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:20px;
+    padding:24px 20px;
+    box-shadow: 0 12px 30px -16px rgba(74,53,39,0.28);
+    border: 1px solid rgba(198,153,79,0.18);
+  }
+  .rsvp-head{
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .rsvp-head .eyebrow2{
+    color: var(--rose-deep);
+    font-size:11px;
+    letter-spacing:0.3em;
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .rsvp-head h3{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size: clamp(24px, 6vw, 30px);
+    font-weight:700;
+    margin-top:8px;
+    color: var(--mocha);
+  }
+  .rsvp-label{
+    font-size:12.5px;
+    font-weight:700;
+    color: var(--mocha-soft);
+    margin-bottom:6px;
+    display:block;
+  }
+  .rsvp-field{ margin-bottom:16px; }
+  .rsvp-input{
+    width:100%;
+    border: 1.5px solid rgba(198,153,79,0.3);
+    border-radius:12px;
+    padding:12px 14px;
+    font-family:'Assistant', sans-serif;
+    font-size:15px;
+    color: var(--mocha);
+    background: var(--cream);
+    direction:rtl;
+  }
+  .status-row{
+    display:flex;
+    gap:8px;
+  }
+  .status-btn{
+    flex:1;
+    text-align:center;
+    padding:12px 4px;
+    border-radius:12px;
+    border:1.5px solid rgba(198,153,79,0.3);
+    background: var(--cream);
+    font-size:13.5px;
+    font-weight:700;
+    color: var(--mocha-soft);
+    cursor:pointer;
+    transition: all 0.2s;
+  }
+  .status-btn.selected[data-status="coming"]{
+    background: #E9F0E7; border-color:#8FA98F; color:#5C7A5C;
+  }
+  .status-btn.selected[data-status="not_coming"]{
+    background: #F6E4E1; border-color:#D08E85; color:#B15F52;
+  }
+  .status-btn.selected[data-status="unknown"]{
+    background: #F6EBD9; border-color:var(--gold); color:#9A7635;
+  }
+  .guest-stepper{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:24px;
+    background: var(--cream);
+    border: 1.5px solid rgba(198,153,79,0.3);
+    border-radius:16px;
+    padding:14px 20px;
+  }
+  .stepper-btn{
+    width:42px; height:42px;
+    border-radius:50%;
+    border:none;
+    background: var(--gold);
+    color:#fff;
+    font-size:22px;
+    font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .stepper-btn:active{ opacity:0.8; }
+  .stepper-count{
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:700;
+    font-size:34px;
+    color: var(--mocha);
+    min-width:50px;
+    text-align:center;
+    font-variant-numeric: tabular-nums;
+  }
+  .rsvp-submit{
+    width:100%;
+    background: var(--gold);
+    color:#fff;
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    font-family:'Assistant', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .rsvp-submit:active{ opacity:0.85; }
+  .rsvp-submit:disabled{ opacity:0.5; }
+  .rsvp-success{
+    display:none;
+    text-align:center;
+    padding: 10px 0;
+  }
+  .rsvp-success.show{ display:block; }
+  .rsvp-success .big{
+    font-size:36px;
+    margin-bottom:8px;
+  }
+  .rsvp-success h4{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:19px;
+    color: var(--mocha);
+    margin-bottom:6px;
+  }
+  .rsvp-success p{
+    font-size:13px;
+    color: var(--mocha-soft);
+  }
+
   /* ---------- FOOTER ---------- */
   footer{
     text-align:center;
@@ -697,6 +841,8 @@
   }
   footer .heart{ color: var(--rose-deep); }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -722,6 +868,11 @@
   <a class="add-cal-main" id="addCalMain" href="#">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
     הוסף ליומן
+  </a>
+  <br>
+  <a class="add-cal-main" href="#rsvp" style="margin-top:8px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+    לאישורי הגעה
   </a>
 
   <button class="share-btn" id="shareBtn" type="button">
@@ -802,6 +953,54 @@
   <div class="carousel-dots" id="carouselDots"></div>
 </div>
 
+<!-- RSVP -->
+<section class="rsvp-section" id="rsvp">
+  <div class="rsvp-card">
+    <div class="rsvp-head">
+      <div class="eyebrow2">נשמח לדעת</div>
+      <h3>אישור הגעה 💌</h3>
+    </div>
+
+    <div id="rsvpForm">
+      <div class="rsvp-field">
+        <label class="rsvp-label">שם מלא</label>
+        <input class="rsvp-input" id="rsvpName" type="text" placeholder="שם פרטי ומשפחה">
+      </div>
+
+      <div class="rsvp-field">
+        <label class="rsvp-label">מספר טלפון</label>
+        <input class="rsvp-input" id="rsvpPhone" type="tel" placeholder="05X-XXXXXXX">
+      </div>
+
+      <div class="rsvp-field">
+        <label class="rsvp-label">האם תגיעו?</label>
+        <div class="status-row">
+          <div class="status-btn" data-status="coming">מגיע/ה</div>
+          <div class="status-btn" data-status="not_coming">לא מגיע/ה</div>
+          <div class="status-btn" data-status="unknown">עדיין לא יודע/ת</div>
+        </div>
+      </div>
+
+      <div class="rsvp-field">
+        <label class="rsvp-label">כמה אנשים יגיעו</label>
+        <div class="guest-stepper">
+          <button class="stepper-btn" id="guestMinus" type="button">−</button>
+          <div class="stepper-count" id="guestCount">1</div>
+          <button class="stepper-btn" id="guestPlus" type="button">+</button>
+        </div>
+      </div>
+
+      <button class="rsvp-submit" id="rsvpSubmit" type="button">שליחת אישור הגעה</button>
+    </div>
+
+    <div class="rsvp-success" id="rsvpSuccess">
+      <div class="big">🤍</div>
+      <h4>תודה שאישרתם!</h4>
+      <p>קיבלנו את הפרטים שלכם, מתרגשים לראות אתכם</p>
+    </div>
+  </div>
+</section>
+
 <!-- SIDE EVENTS -->
 <section class="events-section">
   <div class="events-head">
@@ -832,6 +1031,18 @@
 </footer>
 
 <script>
+  // ---- Firebase ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyDjH_zSWNHjA17SLwmZMJKh75o6nL11hf4",
+    authDomain: "wedding-8a708.firebaseapp.com",
+    projectId: "wedding-8a708",
+    storageBucket: "wedding-8a708.firebasestorage.app",
+    messagingSenderId: "747962432230",
+    appId: "1:747962432230:web:a58fb99eb7d74e91e9d927"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
   // ---- Main wedding countdown ----
   const weddingTarget = new Date(2026, 10, 19, 19, 30, 0); // months are 0-indexed: 10 = November
 
@@ -1284,36 +1495,38 @@
     });
   });
 
-  // ---- Guest wishes (guestbook) ----
-  const WISHES_KEY = 'agamYosefWishes';
-  function loadWishes(){
-    try{
-      const raw = localStorage.getItem(WISHES_KEY);
-      if(raw) return JSON.parse(raw);
-    }catch(e){}
-    return [];
-  }
-  function saveWishes(list){
-    try{ localStorage.setItem(WISHES_KEY, JSON.stringify(list)); }catch(e){}
-  }
-  function renderWishes(){
-    const list = loadWishes();
+  // ---- Guest wishes (guestbook) - shared across everyone via Firestore ----
+  function renderWishesFromDocs(docs){
     const wrap = document.getElementById('wishesList');
     const empty = document.getElementById('wishesEmpty');
     wrap.innerHTML = '';
-    if(list.length === 0){
+    if(docs.length === 0){
       empty.style.display = 'block';
       return;
     }
     empty.style.display = 'none';
-    list.slice().reverse().forEach(w => {
+    docs.forEach(w => {
       const item = document.createElement('div');
       item.className = 'wish-item';
-      item.innerHTML = `<div class="wish-item-name">${w.name}</div><div class="wish-item-text">${w.text}</div>`;
+      const nameEl = document.createElement('div');
+      nameEl.className = 'wish-item-name';
+      nameEl.textContent = w.name;
+      const textEl = document.createElement('div');
+      textEl.className = 'wish-item-text';
+      textEl.textContent = w.text;
+      item.appendChild(nameEl);
+      item.appendChild(textEl);
       wrap.appendChild(item);
     });
   }
-  renderWishes();
+  db.collection('wishes').orderBy('date', 'desc').limit(100).onSnapshot((snapshot) => {
+    const docs = [];
+    snapshot.forEach(doc => docs.push(doc.data()));
+    renderWishesFromDocs(docs);
+  }, () => {
+    document.getElementById('wishesEmpty').textContent = 'לא ניתן לטעון איחולים כרגע';
+    document.getElementById('wishesEmpty').style.display = 'block';
+  });
 
   document.getElementById('wishSubmit').addEventListener('click', () => {
     const nameEl = document.getElementById('wishName');
@@ -1321,13 +1534,56 @@
     const name = nameEl.value.trim();
     const text = textEl.value.trim();
     if(!name || !text) return;
-    const list = loadWishes();
-    list.push({ name, text, date: Date.now() });
-    saveWishes(list);
-    nameEl.value = '';
-    textEl.value = '';
-    renderWishes();
-    fireConfetti(50);
+    const btn = document.getElementById('wishSubmit');
+    btn.disabled = true;
+    db.collection('wishes').add({ name, text, date: Date.now() })
+      .then(() => {
+        nameEl.value = '';
+        textEl.value = '';
+        fireConfetti(50);
+      })
+      .catch(() => { alert('משהו השתבש, נסו שוב'); })
+      .finally(() => { btn.disabled = false; });
+  });
+
+  // ---- RSVP ----
+  let rsvpStatus = null;
+  let guestCount = 1;
+  document.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      rsvpStatus = btn.dataset.status;
+    });
+  });
+  document.getElementById('guestPlus').addEventListener('click', () => {
+    guestCount = Math.min(guestCount + 1, 20);
+    document.getElementById('guestCount').textContent = guestCount;
+  });
+  document.getElementById('guestMinus').addEventListener('click', () => {
+    guestCount = Math.max(guestCount - 1, 0);
+    document.getElementById('guestCount').textContent = guestCount;
+  });
+  document.getElementById('rsvpSubmit').addEventListener('click', () => {
+    const name = document.getElementById('rsvpName').value.trim();
+    const phone = document.getElementById('rsvpPhone').value.trim();
+    if(!name){ alert('נא למלא שם מלא'); return; }
+    if(!phone){ alert('נא למלא מספר טלפון'); return; }
+    if(!rsvpStatus){ alert('נא לבחור אם מגיעים'); return; }
+    const btn = document.getElementById('rsvpSubmit');
+    btn.disabled = true;
+    btn.textContent = 'שולח...';
+    db.collection('rsvps').add({
+      name, phone, status: rsvpStatus, guestCount, date: Date.now()
+    }).then(() => {
+      document.getElementById('rsvpForm').style.display = 'none';
+      document.getElementById('rsvpSuccess').classList.add('show');
+      fireConfetti(80);
+    }).catch(() => {
+      alert('משהו השתבש, נסו שוב');
+      btn.disabled = false;
+      btn.textContent = 'שליחת אישור הגעה';
+    });
   });
 
   // ---- Register service worker (offline support once added to home screen) ----
