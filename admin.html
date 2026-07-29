@@ -204,6 +204,7 @@
     <div class="stats" id="stats"></div>
     <div class="actions">
       <button class="action-btn secondary" id="refreshBtn">🔄 רענון</button>
+      <button class="action-btn secondary" id="cleanupBtn">🧹 ניקוי כפילויות ישנות</button>
       <button class="action-btn" id="exportBtn">📥 ייצוא ל-Excel (לפי הסינון)</button>
       <button class="action-btn secondary" id="logoutBtn">התנתקות</button>
     </div>
@@ -263,6 +264,20 @@
       <tbody id="wishesTbody"></tbody>
     </table>
     <div class="empty-state" id="wishesEmptyState" style="display:none;">עדיין לא התקבלו איחולים</div>
+  </div>
+
+  <div class="section-title">בקשות שירים לדיג'יי 🎶</div>
+  <div class="table-wrap">
+    <table id="songTable">
+      <thead>
+        <tr>
+          <th>שם</th>
+          <th>שיר</th>
+        </tr>
+      </thead>
+      <tbody id="songTbody"></tbody>
+    </table>
+    <div class="empty-state" id="songEmptyState" style="display:none;">עדיין לא התקבלו בקשות שיר</div>
   </div>
 
   <div class="section-title">רק בינינו 🤍</div>
@@ -340,6 +355,36 @@
     loadWishes();
   });
 
+  document.getElementById('cleanupBtn').addEventListener('click', () => {
+    const btn = document.getElementById('cleanupBtn');
+    btn.disabled = true;
+    btn.textContent = 'בודק...';
+    const validIds = new Set(allRows.map(r => r.id));
+    db.collection('phoneIndex').get().then((snapshot) => {
+      const orphans = [];
+      snapshot.forEach(doc => {
+        const rsvpId = doc.data().rsvpId;
+        if(!rsvpId || !validIds.has(rsvpId)) orphans.push(doc.id);
+      });
+      if(orphans.length === 0){
+        alert('לא נמצאו רשומות ישנות תקועות - הכל נקי ✨');
+        btn.disabled = false;
+        btn.textContent = '🧹 ניקוי כפילויות ישנות';
+        return;
+      }
+      Promise.all(orphans.map(id => db.collection('phoneIndex').doc(id).delete().catch(() => {})))
+        .then(() => {
+          alert(`נוקו ${orphans.length} מספרי טלפון תקועים. עכשיו אפשר להירשם איתם מחדש.`);
+          btn.disabled = false;
+          btn.textContent = '🧹 ניקוי כפילויות ישנות';
+        });
+    }).catch((err) => {
+      alert('הניקוי נכשל: ' + err.message + '\n(ייתכן שצריך להוסיף הרשאת list ל-phoneIndex בחוקי Firestore)');
+      btn.disabled = false;
+      btn.textContent = '🧹 ניקוי כפילויות ישנות';
+    });
+  });
+
   auth.onAuthStateChanged((user) => {
     if(user){
       document.getElementById('loginCard').style.display = 'none';
@@ -415,11 +460,31 @@
     return rows;
   }
 
+  function renderSongRequests(){
+    const withSongs = allRows.filter(r => r.song);
+    const tbody = document.getElementById('songTbody');
+    const empty = document.getElementById('songEmptyState');
+    tbody.innerHTML = '';
+    if(withSongs.length === 0){
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      withSongs.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td></td><td></td>`;
+        tr.children[0].textContent = r.name || '';
+        tr.children[1].textContent = r.song || '';
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
   function renderTable(){
     const rows = getFilteredRows();
     const tbody = document.getElementById('rsvpTbody');
     const empty = document.getElementById('emptyState');
     tbody.innerHTML = '';
+    renderSongRequests();
 
     document.querySelectorAll('th.sortable .arrow').forEach(a => a.textContent = '');
     const activeArrow = document.querySelector(`th[data-sort="${sortKey}"] .arrow`);
@@ -573,8 +638,8 @@
       if(!row) return;
       if(confirm(`למחוק את האישור של ${row.name || 'אורח'}?`)){
         const cleanups = [];
-        if(row.phone) cleanups.push(db.collection('phoneIndex').doc(normalizePhone(row.phone)).delete().catch(() => {}));
-        if(row.phone2) cleanups.push(db.collection('phoneIndex').doc(normalizePhone(row.phone2)).delete().catch(() => {}));
+        if(row.phone) cleanups.push(db.collection('phoneIndex').doc(normalizePhone(row.phone)).delete().catch((e) => console.warn('phoneIndex cleanup failed for phone:', e)));
+        if(row.phone2) cleanups.push(db.collection('phoneIndex').doc(normalizePhone(row.phone2)).delete().catch((e) => console.warn('phoneIndex cleanup failed for phone2:', e)));
         Promise.all(cleanups)
           .then(() => db.collection('rsvps').doc(id).delete())
           .catch((err) => alert('מחיקה נכשלה: ' + err.message));
@@ -607,7 +672,7 @@
 
   document.getElementById('exportBtn').addEventListener('click', () => {
     const rows = getFilteredRows();
-    const header = ['שם מלא', 'טלפון', 'אימייל', 'צד', 'סטטוס', 'מספר אנשים', 'תאריך שליחה'];
+    const header = ['שם מלא', 'טלפון', 'אימייל', 'צד', 'סטטוס', 'מספר אנשים', 'בקשת שיר', 'תאריך שליחה'];
     const csvRows = rows.map(r => [
       r.name || '',
       r.phone || '',
@@ -615,6 +680,7 @@
       r.side || '',
       statusLabels[r.status] || '',
       r.guestCount != null ? r.guestCount : '',
+      r.song || '',
       r.date ? formatDate(r.date) : ''
     ]);
     const csvContent = [header, ...csvRows]

@@ -1288,6 +1288,11 @@
         </div>
       </div>
 
+      <div class="rsvp-field">
+        <label class="rsvp-label">בקשת שיר לדיג'יי 🎶 <span style="font-weight:400; opacity:0.7;">(לא חובה)</span></label>
+        <input class="rsvp-input" id="rsvpSong" type="text" placeholder="שם השיר והזמר/ת">
+      </div>
+
       <button class="rsvp-submit" id="rsvpSubmit" type="button">שליחת אישור הגעה</button>
     </div>
   </div>
@@ -1978,6 +1983,7 @@
     const phone = document.getElementById('rsvpPhone').value.trim();
     const phone2 = document.getElementById('rsvpPhone2').value.trim();
     const email = document.getElementById('rsvpEmail').value.trim();
+    const song = document.getElementById('rsvpSong').value.trim();
     const sideOther = document.getElementById('sideOtherInput').value.trim();
     if(!name){ alert('נא למלא שם מלא'); return; }
     if(!phone){ alert('נא למלא מספר טלפון'); return; }
@@ -2008,7 +2014,7 @@
       btn.textContent = 'שולח...';
       const finalSide = rsvpSide === 'אחר' ? (sideOther || 'אחר') : rsvpSide;
       const rsvpData = {
-        name, phone, phone2: phone2 || null, email: email || null,
+        name, phone, phone2: phone2 || null, email: email || null, song: song || null,
         status: rsvpStatus, guestCount, side: finalSide, date: Date.now()
       };
       const indexData = { name, status: rsvpStatus, guestCount, side: finalSide };
