@@ -855,6 +855,31 @@
     background:none; border:none; color: var(--mocha-soft); font-size:16px; cursor:pointer; flex-shrink:0;
   }
 
+  .song-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:18px;
+  }
+  .song-list-item{
+    display:block;
+    background: var(--cream-deep);
+    border-radius:12px;
+    padding:12px 14px;
+    text-decoration:none;
+  }
+  .song-list-name{
+    font-weight:700;
+    font-size:13.5px;
+    color: var(--gold);
+    margin-bottom:3px;
+  }
+  .song-list-song{
+    font-size:13.5px;
+    color: var(--mocha);
+    line-height:1.5;
+  }
+
   .guest-stepper{
     display:flex;
     align-items:center;
@@ -1326,23 +1351,6 @@
         </div>
       </div>
 
-      <div class="rsvp-field">
-        <label class="rsvp-label">בקשת שיר לדיג'יי 🎶 <span style="font-weight:400; opacity:0.7;">(לא חובה)</span></label>
-        <div class="song-search-row">
-          <input class="rsvp-input" id="songSearchInput" type="text" placeholder="חפשו שיר או אמן...">
-          <button class="song-search-btn" id="songSearchBtn" type="button">🔍</button>
-        </div>
-        <div class="song-results" id="songResults"></div>
-        <div class="song-selected" id="songSelected" style="display:none;">
-          <img id="songSelectedThumb" src="" alt="">
-          <div class="song-selected-info">
-            <div class="song-selected-title" id="songSelectedTitle"></div>
-            <div class="song-selected-channel" id="songSelectedChannel"></div>
-          </div>
-          <button class="song-selected-clear" id="songSelectedClear" type="button">✕</button>
-        </div>
-      </div>
-
       <button class="rsvp-submit" id="rsvpSubmit" type="button">שליחת אישור הגעה</button>
     </div>
   </div>
@@ -1441,6 +1449,35 @@
     <button class="wish-submit" id="wishSubmit" type="button">שליחת איחול 🤍</button>
     <div class="wishes-list" id="wishesList"></div>
     <div class="wishes-empty" id="wishesEmpty">היו הראשונים לאחל לזוג!</div>
+  </div>
+</section>
+
+<!-- SONG REQUEST -->
+<section class="wishes-section">
+  <div class="wishes-card">
+    <div class="wishes-head">
+      <div class="eyebrow2">בקשות לדיג'יי</div>
+      <h3>מה תרצו שנרקוד עליו? 🎶</h3>
+    </div>
+    <input class="wish-input" id="songRequestName" type="text" placeholder="השם שלך">
+
+    <div class="song-search-row">
+      <input class="rsvp-input" id="songSearchInput" type="text" placeholder="חפשו שיר או אמן...">
+      <button class="song-search-btn" id="songSearchBtn" type="button">🔍</button>
+    </div>
+    <div class="song-results" id="songResults"></div>
+    <div class="song-selected" id="songSelected" style="display:none;">
+      <img id="songSelectedThumb" src="" alt="">
+      <div class="song-selected-info">
+        <div class="song-selected-title" id="songSelectedTitle"></div>
+        <div class="song-selected-channel" id="songSelectedChannel"></div>
+      </div>
+      <button class="song-selected-clear" id="songSelectedClear" type="button">✕</button>
+    </div>
+
+    <button class="wish-submit" id="songRequestSubmit" type="button" style="margin-top:14px;">שליחת בקשה 🎶</button>
+    <div class="song-list" id="songList"></div>
+    <div class="wishes-empty" id="songListEmpty">היו הראשונים לבקש שיר!</div>
   </div>
 </section>
 
@@ -2073,6 +2110,74 @@
     document.getElementById('songSelected').style.display = 'none';
   });
 
+  // ---- Standalone song requests wall (like the wishes wall) ----
+  function renderSongList(docs){
+    const wrap = document.getElementById('songList');
+    const empty = document.getElementById('songListEmpty');
+    wrap.innerHTML = '';
+    if(docs.length === 0){
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    docs.forEach(s => {
+      const item = document.createElement('a');
+      item.className = 'song-list-item';
+      item.href = s.songUrl || '#';
+      item.target = '_blank';
+      item.rel = 'noopener';
+      const nameEl = document.createElement('div');
+      nameEl.className = 'song-list-name';
+      nameEl.textContent = s.name;
+      const songEl = document.createElement('div');
+      songEl.className = 'song-list-song';
+      songEl.textContent = '▶ ' + s.song;
+      item.appendChild(nameEl);
+      item.appendChild(songEl);
+      wrap.appendChild(item);
+    });
+  }
+  db.collection('songRequests').orderBy('date', 'desc').limit(100).onSnapshot((snapshot) => {
+    const docs = [];
+    snapshot.forEach(doc => docs.push(doc.data()));
+    renderSongList(docs);
+  }, () => {
+    document.getElementById('songListEmpty').textContent = 'לא ניתן לטעון בקשות כרגע';
+    document.getElementById('songListEmpty').style.display = 'block';
+  });
+
+  document.getElementById('songRequestSubmit').addEventListener('click', () => {
+    const name = document.getElementById('songRequestName').value.trim();
+    if(!name){ alert('נא למלא שם'); return; }
+    if(!selectedSong){ alert('נא לחפש ולבחור שיר קודם'); return; }
+    const btn = document.getElementById('songRequestSubmit');
+    btn.disabled = true;
+    btn.textContent = 'שולח...';
+    const song = `${selectedSong.title} - ${selectedSong.channel}`;
+    const songUrl = `https://youtu.be/${selectedSong.videoId}`;
+    try{
+      withTimeout(db.collection('songRequests').add({ name, song, songUrl, date: Date.now() }), 12000)
+        .then(() => {
+          document.getElementById('songRequestName').value = '';
+          selectedSong = null;
+          document.getElementById('songSelected').style.display = 'none';
+          fireConfetti(50);
+        })
+        .catch((err) => {
+          console.error('Song request failed:', err);
+          alert('לא הצלחנו לשלוח את הבקשה 😕\nנסו שוב.');
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = 'שליחת בקשה 🎶';
+        });
+    } catch(err){
+      alert('שגיאה טכנית: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = 'שליחת בקשה 🎶';
+    }
+  });
+
   function normalizePhone(p){
     let digits = (p || '').replace(/\D/g, '');
     if(digits.startsWith('0')) digits = '972' + digits.slice(1);
@@ -2104,8 +2209,6 @@
     const phone = document.getElementById('rsvpPhone').value.trim();
     const phone2 = document.getElementById('rsvpPhone2').value.trim();
     const email = document.getElementById('rsvpEmail').value.trim();
-    const song = selectedSong ? `${selectedSong.title} - ${selectedSong.channel}` : null;
-    const songUrl = selectedSong ? `https://youtu.be/${selectedSong.videoId}` : null;
     const sideOther = document.getElementById('sideOtherInput').value.trim();
     if(!name){ alert('נא למלא שם מלא'); return; }
     if(!phone){ alert('נא למלא מספר טלפון'); return; }
@@ -2136,7 +2239,7 @@
       btn.textContent = 'שולח...';
       const finalSide = rsvpSide === 'אחר' ? (sideOther || 'אחר') : rsvpSide;
       const rsvpData = {
-        name, phone, phone2: phone2 || null, email: email || null, song: song || null, songUrl: songUrl || null,
+        name, phone, phone2: phone2 || null, email: email || null,
         status: rsvpStatus, guestCount, side: finalSide, date: Date.now()
       };
       const indexData = { name, status: rsvpStatus, guestCount, side: finalSide };

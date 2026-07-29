@@ -281,6 +281,7 @@
         <tr>
           <th>שם</th>
           <th>שיר</th>
+          <th>פעולות</th>
         </tr>
       </thead>
       <tbody id="songTbody"></tbody>
@@ -343,6 +344,7 @@
   const knownSides = ['חברים של יוסף', 'חברים של אגם', 'חברי משפחת טרייסמן', 'חברי משפחת צור'];
   let allRows = [];
   let allWishes = [];
+  let allSongRequests = [];
   let sortKey = 'date';
   let sortDir = -1; // -1 desc, 1 asc
 
@@ -361,6 +363,7 @@
   document.getElementById('refreshBtn').addEventListener('click', () => {
     loadRsvps();
     loadWishes();
+    loadSongRequests();
   });
 
   document.getElementById('cleanupBtn').addEventListener('click', () => {
@@ -399,6 +402,7 @@
       document.getElementById('dashboard').style.display = 'block';
       loadRsvps();
       loadWishes();
+      loadSongRequests();
       initPrivateEvents();
     } else {
       document.getElementById('loginCard').style.display = 'block';
@@ -439,6 +443,14 @@
     });
   }
 
+  function loadSongRequests(){
+    db.collection('songRequests').orderBy('date', 'desc').onSnapshot((snapshot) => {
+      allSongRequests = [];
+      snapshot.forEach(doc => allSongRequests.push(Object.assign({ id: doc.id }, doc.data())));
+      renderSongRequests();
+    });
+  }
+
   function getFilteredRows(){
     const status = document.getElementById('filterStatus').value;
     const side = document.getElementById('filterSide').value;
@@ -475,17 +487,16 @@
   }
 
   function renderSongRequests(){
-    const withSongs = allRows.filter(r => r.song);
     const tbody = document.getElementById('songTbody');
     const empty = document.getElementById('songEmptyState');
     tbody.innerHTML = '';
-    if(withSongs.length === 0){
+    if(allSongRequests.length === 0){
       empty.style.display = 'block';
     } else {
       empty.style.display = 'none';
-      withSongs.forEach(r => {
+      allSongRequests.forEach(r => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td></td><td></td>`;
+        tr.innerHTML = `<td></td><td></td><td></td>`;
         tr.children[0].textContent = r.name || '';
         if(r.songUrl){
           const link = document.createElement('a');
@@ -499,17 +510,32 @@
         } else {
           tr.children[1].textContent = r.song || '';
         }
+        tr.children[2].innerHTML = `
+          <button class="icon-btn danger" data-delete-song="${r.id}" title="מחיקה">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        `;
         tbody.appendChild(tr);
       });
     }
   }
+
+  document.getElementById('songTbody').addEventListener('click', (e) => {
+    const delBtn = e.target.closest('[data-delete-song]');
+    if(!delBtn) return;
+    const id = delBtn.dataset.deleteSong;
+    const song = allSongRequests.find(s => s.id === id);
+    if(!song) return;
+    if(confirm(`למחוק את בקשת השיר של ${song.name || 'אורח'}?`)){
+      db.collection('songRequests').doc(id).delete().catch((err) => alert('מחיקה נכשלה: ' + err.message));
+    }
+  });
 
   function renderTable(){
     const rows = getFilteredRows();
     const tbody = document.getElementById('rsvpTbody');
     const empty = document.getElementById('emptyState');
     tbody.innerHTML = '';
-    renderSongRequests();
 
     document.querySelectorAll('th.sortable .arrow').forEach(a => a.textContent = '');
     const activeArrow = document.querySelector(`th[data-sort="${sortKey}"] .arrow`);
@@ -697,7 +723,7 @@
 
   document.getElementById('exportBtn').addEventListener('click', () => {
     const rows = getFilteredRows();
-    const header = ['שם מלא', 'טלפון', 'אימייל', 'צד', 'סטטוס', 'מספר אנשים', 'בקשת שיר', 'תאריך שליחה'];
+    const header = ['שם מלא', 'טלפון', 'אימייל', 'צד', 'סטטוס', 'מספר אנשים', 'תאריך שליחה'];
     const csvRows = rows.map(r => [
       r.name || '',
       r.phone || '',
@@ -705,7 +731,6 @@
       r.side || '',
       statusLabels[r.status] || '',
       r.guestCount != null ? r.guestCount : '',
-      r.song || '',
       r.date ? formatDate(r.date) : ''
     ]);
     const csvContent = [header, ...csvRows]
