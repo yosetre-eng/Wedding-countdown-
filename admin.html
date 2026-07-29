@@ -203,6 +203,7 @@
   <div class="toolbar">
     <div class="stats" id="stats"></div>
     <div class="actions">
+      <button class="action-btn secondary" id="refreshBtn">🔄 רענון</button>
       <button class="action-btn" id="exportBtn">📥 ייצוא ל-Excel (לפי הסינון)</button>
       <button class="action-btn secondary" id="logoutBtn">התנתקות</button>
     </div>
@@ -333,6 +334,10 @@
   });
 
   document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    loadRsvps();
+    loadWishes();
+  });
 
   auth.onAuthStateChanged((user) => {
     if(user){
@@ -544,7 +549,7 @@
       const row = allRows.find(r => r.id === id);
       if(!row) return;
       if(confirm(`למחוק את האישור של ${row.name || 'אורח'}?`)){
-        db.collection('rsvps').doc(id).delete().catch(() => alert('מחיקה נכשלה'));
+        db.collection('rsvps').doc(id).delete().catch((err) => alert('מחיקה נכשלה: ' + err.message));
       }
     }
   });
