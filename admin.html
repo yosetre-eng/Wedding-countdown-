@@ -227,6 +227,14 @@
       <option value="חברי משפחת צור">חברי משפחת צור</option>
       <option value="__other__">אחר</option>
     </select>
+    <select id="filterGuestCount">
+      <option value="">כל הכמויות</option>
+      <option value="1">1 איש</option>
+      <option value="2">2 אנשים</option>
+      <option value="3">3 אנשים</option>
+      <option value="4">4 אנשים</option>
+      <option value="5+">5 ומעלה</option>
+    </select>
     <input type="text" id="filterSearch" placeholder="חיפוש לפי שם או טלפון...">
     <div class="filter-count" id="filterCount"></div>
   </div>
@@ -434,6 +442,7 @@
   function getFilteredRows(){
     const status = document.getElementById('filterStatus').value;
     const side = document.getElementById('filterSide').value;
+    const guestCountFilter = document.getElementById('filterGuestCount').value;
     const search = document.getElementById('filterSearch').value.trim().toLowerCase();
     let rows = allRows.filter(r => {
       if(status && r.status !== status) return false;
@@ -441,6 +450,11 @@
         if(side === '__other__'){
           if(knownSides.includes(r.side)) return false;
         } else if(r.side !== side) return false;
+      }
+      if(guestCountFilter){
+        const gc = r.guestCount || 0;
+        if(guestCountFilter === '5+'){ if(gc < 5) return false; }
+        else if(gc !== parseInt(guestCountFilter, 10)) return false;
       }
       if(search){
         const hay = ((r.name||'') + ' ' + (r.phone||'')).toLowerCase();
@@ -473,7 +487,18 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `<td></td><td></td>`;
         tr.children[0].textContent = r.name || '';
-        tr.children[1].textContent = r.song || '';
+        if(r.songUrl){
+          const link = document.createElement('a');
+          link.href = r.songUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.style.color = 'var(--gold)';
+          link.style.fontWeight = '700';
+          link.textContent = '▶ ' + (r.song || '');
+          tr.children[1].appendChild(link);
+        } else {
+          tr.children[1].textContent = r.song || '';
+        }
         tbody.appendChild(tr);
       });
     }
@@ -594,7 +619,7 @@
     }
   });
 
-  ['filterStatus', 'filterSide'].forEach(id => {
+  ['filterStatus', 'filterSide', 'filterGuestCount'].forEach(id => {
     document.getElementById(id).addEventListener('change', renderTable);
   });
   document.getElementById('filterSearch').addEventListener('input', renderTable);
