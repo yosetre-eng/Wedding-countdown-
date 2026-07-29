@@ -197,6 +197,41 @@
   <div class="login-error" id="loginError">פרטי התחברות שגויים</div>
 </div>
 
+<div class="login-card" id="notAuthorized" style="display:none; text-align:center;">
+  <div style="font-size:32px; margin-bottom:10px;">🙈</div>
+  <div style="font-weight:700; margin-bottom:10px;">החשבון הזה לא מוגדר לצפייה כאן</div>
+  <div style="font-size:13px; color:var(--mocha-soft); margin-bottom:16px;">אם זו טעות, פנו ליוסף</div>
+  <button class="action-btn secondary" id="notAuthorizedLogout">התנתקות</button>
+</div>
+
+<!-- FAMILY (restricted, read-only) VIEW -->
+<div id="familyDashboard" style="display:none; max-width:640px; margin:0 auto;">
+  <div style="text-align:center; font-family:'Frank Ruhl Libre', serif; font-size:19px; font-weight:700; color: var(--mocha); margin-bottom:4px;" id="familyWelcomeName">שלום! 🤍</div>
+  <div style="text-align:center; color: var(--gold); font-size:13px; font-weight:700; margin-bottom:16px;" id="familySideLabel"></div>
+  <div id="familyPersonalMsg" style="max-width:520px; margin:0 auto 24px; background:#fff; border:1px solid rgba(198,153,79,0.25); border-radius:16px; padding:18px 20px; font-family:'Frank Ruhl Libre', serif; font-size:14.5px; line-height:1.8; color: var(--mocha); text-align:center; box-shadow: 0 12px 30px -16px rgba(74,53,39,0.28);"></div>
+
+  <div class="stats" id="familyStats" style="justify-content:center;"></div>
+
+  <div class="toolbar" style="justify-content:flex-end;">
+    <button class="action-btn secondary" id="familyLogoutBtn">התנתקות</button>
+  </div>
+
+  <div class="table-wrap">
+    <table id="familyTable">
+      <thead>
+        <tr>
+          <th>שם מלא</th>
+          <th>טלפון</th>
+          <th>סטטוס</th>
+          <th>מס' אנשים</th>
+        </tr>
+      </thead>
+      <tbody id="familyTbody"></tbody>
+    </table>
+    <div class="empty-state" id="familyEmptyState" style="display:none;">עדיין אין אישורי הגעה מהצד שלכם</div>
+  </div>
+</div>
+
 <div id="dashboard">
 
   <div class="section-title">אישורי הגעה</div>
@@ -396,19 +431,134 @@
     });
   });
 
+  const FULL_ACCESS_EMAILS = ['yosetre@icloud.com', 'agamzur@icloud.com'];
+  const FAMILY_GROUPS = {
+    'me@daniel.md': 'trisman',
+    'juditht4@yahoo.com': 'trisman',
+    'shalgitzur123@gmail.com': 'tzur',
+    'adidido169@gmail.com': 'tzur'
+  };
+  const GROUP_SIDES = {
+    trisman: ['חברים של יוסף', 'חברי משפחת טרייסמן'],
+    tzur: ['חברים של אגם', 'חברי משפחת צור']
+  };
+  const GROUP_LABELS = {
+    trisman: 'חברים של יוסף וחברי משפחת טרייסמן',
+    tzur: 'חברים של אגם וחברי משפחת צור'
+  };
+  const FAMILY_NAMES = {
+    'me@daniel.md': 'דניאל',
+    'juditht4@yahoo.com': 'יהודית',
+    'shalgitzur123@gmail.com': 'שלגית',
+    'adidido169@gmail.com': 'עדי'
+  };
+  const FAMILY_MESSAGES = {
+    'me@daniel.md': 'דניאל היקר, תודה שאתה איתנו בכל צעד בהכנות לחתונה - כל עצה, כל עזרה, כל רגע שהיית שם בשבילנו. תודה גם על כל השנים שהכנת אותי לחיים, בסבלנות ובאהבה. הדף הזה כאן כדי להוריד ממך קצת מהלחץ, שתוכל פשוט להתרגש איתנו לקראת היום הגדול. 🤍',
+    'juditht4@yahoo.com': 'יהודית היקרה, תודה שאת איתנו בכל צעד בדרך לחתונה - הלב הגדול והתמיכה שלך מלווים אותנו כל הזמן. תודה גם על כל מה שנתת לי כדי להגיע לרגע הזה. הדף הזה כאן כדי להוריד ממך קצת מהלחץ, כדי שתוכלי פשוט ליהנות ולהתרגש. 🤍',
+    'shalgitzur123@gmail.com': 'שלגית היקרה, תודה שאת חלק כל כך משמעותי מההכנות לחתונה של אגם - התמיכה והאהבה שלך מורגשות בכל פרט. תודה גם על כל השנים שבהן הכנת אותה לחיים, באהבה ובחוכמה. הדף הזה כאן כדי להקל עלייך, שתוכלי פשוט להתרגש ולהיות נוכחת ברגע. 🤍',
+    'adidido169@gmail.com': 'עדי היקר, תודה שאתה איתנו בכל שלב בדרך לחתונה של אגם - הנוכחות והתמיכה שלך חשובות לנו מאוד. תודה גם על כל מה שנתת לה כדי להגיע לרגע הזה. הדף הזה כאן כדי להוריד ממך קצת מהעומס, שתוכל פשוט ליהנות ולהתרגש איתנו. 🤍'
+  };
+  let familyGroup = null;
+  let allFamilyRows = [];
+
+  function hideAllStates(){
+    document.getElementById('loginCard').style.display = 'none';
+    document.getElementById('notAuthorized').style.display = 'none';
+    document.getElementById('familyDashboard').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+
   auth.onAuthStateChanged((user) => {
     if(user){
-      document.getElementById('loginCard').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      loadRsvps();
-      loadWishes();
-      loadSongRequests();
-      initPrivateEvents();
+      const emailKey = (user.email || '').toLowerCase();
+      hideAllStates();
+
+      if(FULL_ACCESS_EMAILS.includes(emailKey)){
+        document.getElementById('dashboard').style.display = 'block';
+        loadRsvps();
+        loadWishes();
+        loadSongRequests();
+        initPrivateEvents();
+      } else if(FAMILY_GROUPS[emailKey]){
+        familyGroup = FAMILY_GROUPS[emailKey];
+        document.getElementById('familyDashboard').style.display = 'block';
+        document.getElementById('familyWelcomeName').textContent = 'שלום ' + (FAMILY_NAMES[emailKey] || '') + '! 🤍';
+        document.getElementById('familyPersonalMsg').textContent = FAMILY_MESSAGES[emailKey] || '';
+        document.getElementById('familySideLabel').textContent = GROUP_LABELS[familyGroup];
+        loadFamilyRsvps();
+      } else {
+        document.getElementById('notAuthorized').style.display = 'block';
+      }
     } else {
+      hideAllStates();
       document.getElementById('loginCard').style.display = 'block';
-      document.getElementById('dashboard').style.display = 'none';
     }
   });
+
+  document.getElementById('notAuthorizedLogout').addEventListener('click', () => auth.signOut());
+  document.getElementById('familyLogoutBtn').addEventListener('click', () => auth.signOut());
+
+  function familyWaLink(phone){
+    let digits = (phone || '').replace(/[^0-9]/g, '');
+    if(digits.startsWith('0')) digits = '972' + digits.slice(1);
+    return 'https://wa.me/' + digits;
+  }
+
+  function loadFamilyRsvps(){
+    db.collection('rsvps').orderBy('date', 'desc').onSnapshot((snapshot) => {
+      allFamilyRows = [];
+      snapshot.forEach(doc => allFamilyRows.push(doc.data()));
+      renderFamilyTable();
+    }, (err) => {
+      document.getElementById('familyEmptyState').textContent = 'שגיאה בטעינת הנתונים: ' + err.message;
+      document.getElementById('familyEmptyState').style.display = 'block';
+    });
+  }
+
+  function renderFamilyTable(){
+    if(!familyGroup) return;
+    const mySides = GROUP_SIDES[familyGroup];
+    const rows = allFamilyRows.filter(r => mySides.includes(r.side));
+    const tbody = document.getElementById('familyTbody');
+    const empty = document.getElementById('familyEmptyState');
+    tbody.innerHTML = '';
+    if(rows.length === 0){
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td></td><td></td><td></td><td></td>`;
+        tr.children[0].textContent = r.name || '';
+        if(r.phone){
+          const link = document.createElement('a');
+          link.href = familyWaLink(r.phone);
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.style.color = '#3C8C5C';
+          link.style.fontWeight = '600';
+          link.style.textDecoration = 'none';
+          link.textContent = '📱 ' + r.phone;
+          tr.children[1].appendChild(link);
+        }
+        const pill = document.createElement('span');
+        pill.className = 'status-pill ' + (r.status || 'unknown');
+        pill.textContent = statusLabels[r.status] || 'לא ידוע';
+        tr.children[2].appendChild(pill);
+        tr.children[3].textContent = (r.guestCount != null) ? r.guestCount : '';
+        tbody.appendChild(tr);
+      });
+    }
+    const comingCount = rows.filter(r => r.status === 'coming').reduce((s, r) => s + (r.guestCount||0), 0);
+    const notComingCount = rows.filter(r => r.status === 'not_coming').length;
+    const unknownCount = rows.filter(r => r.status === 'unknown').length;
+    document.getElementById('familyStats').innerHTML = `
+      <div class="stat-chip">סה"כ טפסים: <span>${rows.length}</span></div>
+      <div class="stat-chip">מגיעים: <span>${comingCount}</span></div>
+      <div class="stat-chip">לא מגיעים: <span>${notComingCount}</span></div>
+      <div class="stat-chip">לא ידוע: <span>${unknownCount}</span></div>
+    `;
+  }
 
   function formatDate(ts){
     const d = new Date(ts);

@@ -1963,6 +1963,7 @@
           nameEl.value = '';
           textEl.value = '';
           fireConfetti(50);
+          notifyAdmin(`${name}: ${text}`, 'איחול חדש 💌');
         })
         .catch((err) => {
           console.error('Wish submit failed:', err);
@@ -2038,6 +2039,17 @@
 
   // TODO: replace with Yosef's real WhatsApp number (972 + number, no leading 0, no +/spaces)
   const ADMIN_WHATSAPP_NUMBER = '972546192817';
+
+  const NTFY_TOPIC = 'agam-yosef-wedding-notify-8x3k';
+  function notifyAdmin(message, title){
+    try{
+      fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+        method: 'POST',
+        body: (title ? title + '\n' : '') + message,
+        headers: { 'Tags': 'tada' }
+      }).catch(() => {});
+    } catch(e){}
+  }
 
   // TODO: replace with a real YouTube Data API v3 key (see instructions from Claude)
   const YOUTUBE_API_KEY = 'AIzaSyAcVxUD4_W4XcL6CXKK6heqbCzItWTrmoM';
@@ -2162,6 +2174,7 @@
           selectedSong = null;
           document.getElementById('songSelected').style.display = 'none';
           fireConfetti(50);
+          notifyAdmin(`${name} ביקש/ה: ${song}`, 'בקשת שיר חדשה 🎶');
         })
         .catch((err) => {
           console.error('Song request failed:', err);
@@ -2251,6 +2264,7 @@
       }).then(() => {
         document.getElementById('rsvpForm').style.display = 'none';
         openRsvpSuccessOverlay();
+        notifyAdmin(`${name} - ${statusLabelsHe[rsvpStatus]} (${guestCount} אנשים, ${finalSide})`, 'אישור הגעה חדש 🎉');
       }).catch((err) => {
         console.error('RSVP submit failed:', err);
         alert('לא הצלחנו לשלוח את האישור 😕\n' + (err && err.message ? err.message : '') + '\nנסו שוב או בדקו את החיבור לאינטרנט.');
