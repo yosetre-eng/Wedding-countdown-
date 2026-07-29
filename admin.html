@@ -257,6 +257,7 @@
           <th>שם</th>
           <th>איחול</th>
           <th>תאריך</th>
+          <th>פעולות</th>
         </tr>
       </thead>
       <tbody id="wishesTbody"></tbody>
@@ -361,6 +362,12 @@
     let digits = (phone || '').replace(/[^0-9]/g, '');
     if(digits.startsWith('0')) digits = '972' + digits.slice(1);
     return 'https://wa.me/' + digits;
+  }
+
+  function normalizePhone(p){
+    let digits = (p || '').replace(/\D/g, '');
+    if(digits.startsWith('0')) digits = '972' + digits.slice(1);
+    return digits;
   }
 
   function loadRsvps(){
@@ -497,14 +504,30 @@
       empty.style.display = 'none';
       allWishes.forEach(w => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td></td><td class="wish-text-cell"></td><td></td>`;
+        tr.innerHTML = `<td></td><td class="wish-text-cell"></td><td></td><td></td>`;
         tr.children[0].textContent = w.name || '';
         tr.children[1].textContent = w.text || '';
         tr.children[2].textContent = w.date ? formatDate(w.date) : '';
+        tr.children[3].innerHTML = `
+          <button class="icon-btn danger" data-delete-wish="${w.id}" title="מחיקה">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        `;
         tbody.appendChild(tr);
       });
     }
   }
+
+  document.getElementById('wishesTbody').addEventListener('click', (e) => {
+    const delBtn = e.target.closest('[data-delete-wish]');
+    if(!delBtn) return;
+    const id = delBtn.dataset.deleteWish;
+    const wish = allWishes.find(w => w.id === id);
+    if(!wish) return;
+    if(confirm(`למחוק את האיחול של ${wish.name || 'אורח'}?`)){
+      db.collection('wishes').doc(id).delete().catch((err) => alert('מחיקה נכשלה: ' + err.message));
+    }
+  });
 
   ['filterStatus', 'filterSide'].forEach(id => {
     document.getElementById(id).addEventListener('change', renderTable);
@@ -549,7 +572,12 @@
       const row = allRows.find(r => r.id === id);
       if(!row) return;
       if(confirm(`למחוק את האישור של ${row.name || 'אורח'}?`)){
-        db.collection('rsvps').doc(id).delete().catch((err) => alert('מחיקה נכשלה: ' + err.message));
+        const cleanups = [];
+        if(row.phone) cleanups.push(db.collection('phoneIndex').doc(normalizePhone(row.phone)).delete().catch(() => {}));
+        if(row.phone2) cleanups.push(db.collection('phoneIndex').doc(normalizePhone(row.phone2)).delete().catch(() => {}));
+        Promise.all(cleanups)
+          .then(() => db.collection('rsvps').doc(id).delete())
+          .catch((err) => alert('מחיקה נכשלה: ' + err.message));
       }
     }
   });
