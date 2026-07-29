@@ -144,6 +144,20 @@
   }
   .wish-text-cell{ max-width:280px; white-space:normal; line-height:1.5; }
 
+  .private-events{ display:flex; flex-direction:column; gap:12px; }
+  .priv-card{
+    background:#fff; border-radius:14px; padding:16px 18px;
+    box-shadow: 0 12px 30px -16px rgba(74,53,39,0.28);
+    border: 1px solid rgba(198,153,79,0.18);
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .priv-card-name{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size:15.5px; color: var(--mocha); }
+  .priv-card-date{ font-size:12px; color: var(--mocha-soft); margin-top:2px; }
+  .priv-cd{ display:flex; gap:8px; }
+  .priv-unit{ background: var(--cream-deep); border-radius:8px; padding:6px 10px; text-align:center; min-width:44px; }
+  .priv-num{ font-family:'Frank Ruhl Libre', serif; font-weight:700; font-size:16px; color: var(--mocha); }
+  .priv-label{ font-size:9px; color: var(--mocha-soft); }
+
   /* edit modal */
   .modal-overlay{
     position:fixed; inset:0; background: rgba(30,20,12,0.5);
@@ -221,6 +235,7 @@
         <tr>
           <th class="sortable" data-sort="name">שם מלא <span class="arrow"></span></th>
           <th>טלפון</th>
+          <th>אימייל</th>
           <th class="sortable" data-sort="side">צד <span class="arrow"></span></th>
           <th class="sortable" data-sort="status">סטטוס <span class="arrow"></span></th>
           <th class="sortable" data-sort="guestCount">מס' אנשים <span class="arrow"></span></th>
@@ -248,6 +263,9 @@
     <div class="empty-state" id="wishesEmptyState" style="display:none;">עדיין לא התקבלו איחולים</div>
   </div>
 
+  <div class="section-title">רק בינינו 🤍</div>
+  <div class="private-events" id="privateEvents"></div>
+
 </div>
 
 <!-- EDIT MODAL -->
@@ -258,6 +276,8 @@
     <input type="text" id="editName">
     <label>טלפון</label>
     <input type="text" id="editPhone">
+    <label>אימייל</label>
+    <input type="email" id="editEmail">
     <label>צד</label>
     <select id="editSide">
       <option value="חברים של יוסף">חברים של יוסף</option>
@@ -320,6 +340,7 @@
       document.getElementById('dashboard').style.display = 'block';
       loadRsvps();
       loadWishes();
+      initPrivateEvents();
     } else {
       document.getElementById('loginCard').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
@@ -398,7 +419,7 @@
       empty.style.display = 'none';
       rows.forEach(r => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
+        tr.innerHTML = `<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
         tr.children[0].textContent = r.name || '';
 
         const phoneCell = tr.children[1];
@@ -412,17 +433,19 @@
           phoneCell.appendChild(link);
         }
 
-        tr.children[2].textContent = r.side || '';
+        tr.children[2].textContent = r.email || '—';
+
+        tr.children[3].textContent = r.side || '';
 
         const pill = document.createElement('span');
         pill.className = 'status-pill ' + (r.status || 'unknown');
         pill.textContent = statusLabels[r.status] || 'לא ידוע';
-        tr.children[3].appendChild(pill);
+        tr.children[4].appendChild(pill);
 
-        tr.children[4].textContent = (r.guestCount != null) ? r.guestCount : '';
-        tr.children[5].textContent = r.date ? formatDate(r.date) : '';
+        tr.children[5].textContent = (r.guestCount != null) ? r.guestCount : '';
+        tr.children[6].textContent = r.date ? formatDate(r.date) : '';
 
-        const actionsCell = tr.children[6];
+        const actionsCell = tr.children[7];
         actionsCell.innerHTML = `
           <div class="row-actions">
             <button class="icon-btn" data-edit="${r.id}" title="עריכה">
@@ -510,6 +533,7 @@
       editingId = id;
       document.getElementById('editName').value = row.name || '';
       document.getElementById('editPhone').value = row.phone || '';
+      document.getElementById('editEmail').value = row.email || '';
       document.getElementById('editSide').value = knownSides.includes(row.side) ? row.side : 'אחר';
       document.getElementById('editStatus').value = row.status || 'unknown';
       document.getElementById('editGuestCount').value = row.guestCount != null ? row.guestCount : 1;
@@ -538,6 +562,7 @@
     const updated = {
       name: document.getElementById('editName').value.trim(),
       phone: document.getElementById('editPhone').value.trim(),
+      email: document.getElementById('editEmail').value.trim() || null,
       side: document.getElementById('editSide').value,
       status: document.getElementById('editStatus').value,
       guestCount: parseInt(document.getElementById('editGuestCount').value, 10) || 0
@@ -549,10 +574,11 @@
 
   document.getElementById('exportBtn').addEventListener('click', () => {
     const rows = getFilteredRows();
-    const header = ['שם מלא', 'טלפון', 'צד', 'סטטוס', 'מספר אנשים', 'תאריך שליחה'];
+    const header = ['שם מלא', 'טלפון', 'אימייל', 'צד', 'סטטוס', 'מספר אנשים', 'תאריך שליחה'];
     const csvRows = rows.map(r => [
       r.name || '',
       r.phone || '',
+      r.email || '',
       r.side || '',
       statusLabels[r.status] || '',
       r.guestCount != null ? r.guestCount : '',
@@ -571,6 +597,57 @@
     a.remove();
     URL.revokeObjectURL(url);
   });
+
+  // ---- Private events (mikveh / henna / bachelorette) - visible only after login ----
+  function initPrivateEvents(){
+    if(window.__privateEventsStarted) return;
+    window.__privateEventsStarted = true;
+
+    const events = [
+      { name: "מסיבת רווקות", emoji: "🥂", date: new Date(2026, 9, 15, 0, 0, 0) },
+      { name: "חינה", emoji: "🪔", date: new Date(2026, 10, 2, 0, 0, 0) },
+      { name: "מקווה של אגם", emoji: "🤍", date: new Date(2026, 10, 18, 0, 0, 0) }
+    ];
+
+    const wrap = document.getElementById('privateEvents');
+    wrap.innerHTML = events.map((ev, i) => `
+      <div class="priv-card">
+        <div>
+          <div class="priv-card-name">${ev.emoji} ${ev.name}</div>
+          <div class="priv-card-date">${ev.date.toLocaleDateString('he-IL')}</div>
+        </div>
+        <div class="priv-cd" id="priv-cd-${i}">
+          <div class="priv-unit"><div class="priv-num" data-u="d">--</div><div class="priv-label">ימים</div></div>
+          <div class="priv-unit"><div class="priv-num" data-u="h">--</div><div class="priv-label">שעות</div></div>
+          <div class="priv-unit"><div class="priv-num" data-u="m">--</div><div class="priv-label">דקות</div></div>
+          <div class="priv-unit"><div class="priv-num" data-u="s">--</div><div class="priv-label">שניות</div></div>
+        </div>
+      </div>
+    `).join('');
+
+    function pad2(n){ return String(n).padStart(2,'0'); }
+    function tick(){
+      events.forEach((ev, i) => {
+        const container = document.getElementById('priv-cd-' + i);
+        if(!container) return;
+        let diff = ev.date - new Date();
+        if(diff <= 0){
+          container.innerHTML = '<div style="font-weight:700;color:var(--gold);">היום! ✨</div>';
+          return;
+        }
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff / 3600000) % 24);
+        const minutes = Math.floor((diff / 60000) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        container.querySelector('[data-u="d"]').textContent = days;
+        container.querySelector('[data-u="h"]').textContent = pad2(hours);
+        container.querySelector('[data-u="m"]').textContent = pad2(minutes);
+        container.querySelector('[data-u="s"]').textContent = pad2(seconds);
+      });
+    }
+    tick();
+    setInterval(tick, 1000);
+  }
 </script>
 </body>
 </html>
